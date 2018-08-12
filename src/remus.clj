@@ -44,14 +44,12 @@
   (let [{:keys [status ^InputStream body headers]} http-resp
         {:keys [^String content-type]} headers
         reader (XmlReader. body content-type)]
-
-    {:status status
-     :headers headers
-     :feed (reader->feed reader)}))
+    (reader->feed reader)))
 
 
 (def http-opt
-  {:as :stream})
+  {:as :stream
+   :throw-exceptions true})
 
 
 ;;
@@ -63,7 +61,8 @@
   [url & [opt]]
   (let [opt (merge opt http-opt)
         resp (client/get url opt)]
-    (parse-http-resp resp)))
+    {:response resp
+     :feed (parse-http-resp resp)}))
 
 
 (defn parse-file
@@ -93,8 +92,8 @@
 (extend-type SyndContent
   ToClojure
   (->clj [c]
-    {:type (.getType c)
-     :mode (.getMode c)
+    {:type  (.getType c)
+     :mode  (.getMode c)
      :value (.getValue c)}))
 
 
@@ -109,37 +108,37 @@
 (extend-type SyndLink
   ToClojure
   (->clj [l]
-    {:rel (.getRel l)
-     :type (.getType l)
-     :href (.getHref l)
-     :title (.getTitle l)
-     :href-lang  (.getHreflang l)
-     :length (.getLength l)}))
+    {:rel       (.getRel l)
+     :type      (.getType l)
+     :href      (.getHref l)
+     :title     (.getTitle l)
+     :href-lang (.getHreflang l)
+     :length    (.getLength l)}))
 
 
 (extend-type SyndPerson
   ToClojure
   (->clj [p]
-    {:name (.getName p)
-     :uri (.getUri p)
+    {:name  (.getName p)
+     :uri   (.getUri p)
      :email (.getEmail p)}))
 
 
 (extend-type SyndCategory
   ToClojure
   (->clj [c]
-    {:name (.getName c)
+    {:name         (.getName c)
      :taxonomy-url (.getTaxonomyUri c)}))
 
 
 (extend-type SyndImage
   ToClojure
   (->clj [i]
-    {:title (.getTitle i)
-     :url (.getUrl i)
-     :width (.getWidth i)
-     :height (.getHeight i)
-     :link (.getLink i)
+    {:title       (.getTitle i)
+     :url         (.getUrl i)
+     :width       (.getWidth i)
+     :height      (.getHeight i)
+     :link        (.getLink i)
      :description (.getDescription i)}))
 
 
