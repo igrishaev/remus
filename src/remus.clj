@@ -1,5 +1,10 @@
 (ns remus
+  "Clojure wrapper around Java Rome tools.
+  See https://github.com/igrishaev/remus"
+
   (:require [clj-http.client :as client]
+
+            [clojure.java.io :as io]
             [clojure.xml :as xml])
 
   (:import java.net.URL
@@ -39,49 +44,49 @@
     (->clj feed)))
 
 
-(defn- parse-http-resp
-  [http-resp]
-  (let [{:keys [status ^InputStream body headers]} http-resp
-        {:keys [^String content-type]} headers
-        reader (XmlReader. body content-type)]
-    (reader->feed reader)))
-
-
-(def http-opt
-  {:as :stream
-   :throw-exceptions true})
-
-
 ;;
 ;; Parsing
 ;;
 
 
-(defn parse-url
-  [url & [opt]]
-  (let [opt (merge opt http-opt)
-        resp (client/get url opt)]
-    {:response resp
-     :feed (parse-http-resp resp)}))
+(defn parse-stream
+  [^InputStream stream & [rome-opt]]
+  (let [{:keys [lenient encoding]} rome-opt
+        lenient (boolean lenient)]
+    (reader->feed
+     (XmlReader. ^InputStream stream lenient encoding))))
 
 
 (defn parse-file
-  [path]
-  (let [^File file (File. path)]
-    (reader->feed (XmlReader. file))))
+  [^String path & [rome-opt]]
+  (let [stream (io/input-stream (io/as-file path))]
+    (parse-stream stream rome-opt)))
 
 
-(defn parse-stream
-  [^InputStream stream]
-  (reader->feed (XmlReader. stream)))
+(defn- parse-http-resp
+  [http-resp & [rome-opt]]
+  (let [{:keys [lenient ^String encoding]} rome-opt
+
+        lenient (boolean lenient)
+
+        {:keys [status body headers]} http-resp
+        {:keys [^String content-type]} headers]
+
+    (reader->feed
+     (XmlReader. ^InputStream body content-type lenient encoding))))
 
 
-(defn parse-string
-  [^String string & [encoding]]
-  (let [encoding (or encoding "UTF-8")
-        bytes (.getBytes string encoding)
-        ^ByteArrayInputStream stream (ByteArrayInputStream. bytes)]
-    (reader->feed (XmlReader. stream))))
+(def http-opt-default
+  {:as :stream
+   :throw-exceptions true})
+
+
+(defn parse-url
+  [url & [http-opt rome-opt]]
+  (let [opt (merge http-opt http-opt-default)
+        resp (client/get url opt)]
+    {:response resp
+     :feed (parse-http-resp resp rome-opt)}))
 
 
 ;;
@@ -100,9 +105,9 @@
 (extend-type SyndEnclosure
   ToClojure
   (->clj [e]
-    {:url (.getUrl e)
+    {:url    (.getUrl e)
      :length (.getLength e)
-     :type (.getType e)}))
+     :type   (.getType e)}))
 
 
 (extend-type SyndLink
