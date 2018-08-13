@@ -1,4 +1,3 @@
-
 # Remus
 
 [rome-site]: https://rometools.github.io/rome/
@@ -9,6 +8,23 @@ An attentive RSS and Atom feed parser for Clojure. It's built on top of
 well-known and powerful [ROME Tools][rome-site] Java library. It deals with
 encoding issues and non-standard XML tags. Remus aimed at extracting as much
 information from a feed as possible.
+
+# Table of Contents
+
+<!-- toc -->
+
+- [Benefits](#benefits)
+- [Installation](#installation)
+- [Usage](#usage)
+  * [Parsing a URL](#parsing-a-url)
+  * [Parsing a file](#parsing-a-file)
+  * [Parsing an input stream](#parsing-an-input-stream)
+- [HTTP communication tweaks](#http-communication-tweaks)
+- [Non-standard tags](#non-standard-tags)
+- [Encoding issues](#encoding-issues)
+- [License](#license)
+
+<!-- tocstop -->
 
 ## Benefits
 
