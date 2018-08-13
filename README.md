@@ -68,6 +68,8 @@ or:
 The variable `result` is a map with two keys: `:response` and `:feed`. These are
 HTTP response and a parsed feed. Here is a truncated version of a feed:
 
+<details><summary>Open listing</summary>
+
 ```clojure
 (def feed (:feed result))
 
@@ -126,6 +128,8 @@ HTTP response and a parsed feed. Here is a truncated version of a feed:
  :uri "http://planet.clojure.in/atom.xml",
  :authors ()}
 ```
+
+</details>
 
 As for HTTP response, it's the same data structure that
 `clj-http.client/response` function returns. You'll need that data to save some
