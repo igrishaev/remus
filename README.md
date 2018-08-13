@@ -136,9 +136,9 @@ Like `parse-file`, it returns a parsed feed as a data structure.
 ## HTTP communication tweaks
 
 Since `Remus` relies on [clj-http][clj-http] library for HTTP communication, you
-are welcome to use all the its features. For example, to control redirects,
-security validation, authentication credentials, etc. When calling `parse-url`,
-pass an optional map with HTTP parameters:
+are welcome to use all its features. For example, to control redirects, security
+validation, authentication, etc. When calling `parse-url`, pass an optional map
+with HTTP parameters:
 
 ```clojure
 ;; Do not check an untrusted SSL certificate.
@@ -157,10 +157,10 @@ pass an optional map with HTTP parameters:
 ```
 
 Remus overrides just two options: `:as` and `:throw-exceptions`. No matter if
-you pass them, their values become `:stream` and `true`. We use streamed HTTP
-response since ROME tools works better with raw binary content rather then
-parsed string. We throw HTTP non-200 exceptions to prevent parsing non-positive
-server response.
+you pass them, their values will become `:stream` and `true`. We use streamed
+HTTP response since ROME works better with raw binary content rather then parsed
+string. We throw exceptions for non-200 responses to prevent parsing their
+content.
 
 Here is how you can access the negative HTTP response:
 
@@ -234,8 +234,8 @@ received before:
  :feed nil}
 ```
 
-Since the server returned non-200, but positive status code (304 in our case),
-we don't parse the response at all. So the `:feed` fields in the `result-new`
+Since the server returned non-200 but positive status code (304 in our case), we
+don't parse the response at all. So the `:feed` field in the `result-new`
 variable will be `nil`.
 
 ## Non-standard tags
@@ -243,8 +243,8 @@ variable will be `nil`.
 [youtube-rss]: https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg
 
 Sometimes, RSS/Atom feeds ship additional data in non-standard tags. A good
-example might be YouTube a typical [YouTube feed][youtube-rss]. Let's examine
-one of its entries:
+example might be a typical [YouTube feed][youtube-rss]. Let's examine one of its
+entries:
 
 ```xml
 <entry>
@@ -280,13 +280,13 @@ In addition to the standard fields, the feed carries information about the video
 ID, channel ID and statistics: views count, the number of times the video was
 starred and its average rating.
 
-When you parse geo-related feeds, probably you'll face coordinates, lat/lot
-pairs or whatever else.
+Or if you parse geo-related feeds, probably you'll face lat/lot coordinates,
+location names, etc.
 
 Other RSS parsers either drop this data or require you to write a custom
-extension. But `Remus` squashes all the non-standard tags into an parsed XML
-data. Then, it puts that data into an `:extra` field for each entry and on the
-top-level of a feed.
+extension. But `Remus` squashes all the non-standard tags into a parsed XML
+data. It puts that data into an `:extra` field for each entry and on the top
+level of a feed.
 
 This is how you can touch the extra data:
 
@@ -343,10 +343,10 @@ XML-related technics: walking, zippers, etc.
 
 ## Encoding issues
 
-All the `parse-...` functions mentioned above take additional ROME-related
-options. Use them to solve XML-decoding issues when dealing with weird or
-non-set HTTP headers. ROME's got a solid algorithm to guess encoding, but
-sometimes it might need your help.
+All the `parse-<something>` functions mentioned above take additional
+ROME-related options. Use them to solve XML-decoding issues when dealing with
+weird or non-set HTTP headers. ROME's got a solid algorithm to guess encoding,
+but sometimes it might need your help.
 
 At the moment, `Remus` supports `:lenient` and `:encoding` options. The first
 one indicates if ROME should try to guess encoding in case of XML parsing
