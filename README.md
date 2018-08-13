@@ -70,63 +70,43 @@ or:
 The variable `result` is a map with two keys: `:response` and `:feed`. These are
 HTTP response and a parsed feed. Here is a truncated version of a feed:
 
-<details><summary>Open listing</summary>
-
 ```clojure
 (def feed (:feed result))
 
 (println feed)
 
+;;;;
+;; just a small subset
+;;;;
+
 {:description nil,
- :encoding nil,
  :feed-type "atom_1.0",
  :entries
  [{:description nil,
    :updated-date #inst "2018-08-13T10:00:00.000-00:00",
-   :comments nil,
    :extra {:tag :extra, :attrs nil, :content ()},
-   :published-date nil,
    :title
    "PurelyFunctional.tv Newsletter 287: DataScript, GraphQL, CRDTs",
    :author "Eric Normand",
-   :categories (),
    :link
    "https://purelyfunctional.tv/issues/purelyfunctional-tv-newsletter-287-datascript-graphql-crdts/",
-   :contributors (),
    :uri "https://purelyfunctional.tv/?p=28660",
    :contents
    ({:type "html",
      :mode nil,
      :value
-     "<div class=\" reset\">\n<p><em>Issue 287 August 13, 2018 <a href=\"https://purelyfunctional.tv/newsletter-archives/\">Archives</a> <a href=\"https://purelyfunctional.tv/newsletter/\" title=\"Thanks, Jeff!\">Subscribe</a></em></p>\n<p>Hi Clojurationists,</p>\n<p>I've just been digging <a href=\"https://twitter.com/puredanger/status/1028103654241443840\" title=\"\">this lovely tweet from Alex Miller</a>.</p>\n<p>Rock on!<br /><a href=\"http://twitter.com/ericnormand\">Eric Normand</a> &lt;<a href=\"mailto: ... ()}),
- :docs nil,
- :extra {:tag :extra, :attrs nil, :content ()},
- :copyright nil,
+     "<div class=\" reset\">\n<p><em>Issue 287 August 13, 2018 <a href=\"https://purelyfunctional.tv/newsletter-archives/\">Archives</a> <a href=\"https://purelyfunctional.tv/newsletter/\" title=\"Thanks, Jeff!\">Subscribe</a></em></p>\n<p>Hi Clojurationists,</p>\n<p>I've just been digging <a href=\"https://twitter.com/puredanger/status/1028103654241443840\" title=\"\">this lovely tweet from Alex Miller</a>.</p>\n<p>Rock on!<br /><a href=\"http://twitter.com/ericnormand\">Eric Normand</a> &lt;<a href=\"mailto: ... "}),
  :published-date #inst "2018-08-13T11:59:11.000-00:00",
- :icon nil,
  :entry-links
  ({:rel "alternate",
-   :type nil,
    :href "http://planet.clojure.in/",
-   :title nil,
-   :href-lang nil,
    :length 0}
   {:rel "self",
-   :type nil,
    :href "http://planet.clojure.in/atom.xml",
-   :title nil,
-   :href-lang nil,
    :length 0}),
  :title "Planet Clojure",
- :author nil,
- :categories (),
  :language nil,
  :link "http://planet.clojure.in/",
- :webmaster nil,
- :contributors (),
- :editor nil,
- :generator nil,
- :image nil,
  :uri "http://planet.clojure.in/atom.xml",
  :authors ()}
 ```
