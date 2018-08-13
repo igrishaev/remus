@@ -9,6 +9,8 @@ well-known and powerful [ROME Tools][rome-site] Java library. It deals with
 encoding issues and non-standard XML tags. Remus aimed at extracting as much
 information from a feed as possible.
 
+![](art/romulus-remus.jpg)
+
 # Table of Contents
 
 <!-- toc -->
@@ -56,7 +58,7 @@ First, import the library:
 or:
 
 ```clojure
-(require [remus :refer [parse-url parse-file]])
+(require '[remus :refer [parse-url parse-file]])
 ```
 
 ### Parsing a URL
