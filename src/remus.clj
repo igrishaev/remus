@@ -50,43 +50,43 @@
 
 
 (defn parse-stream
-  [^InputStream stream & [rome-opt]]
-  (let [{:keys [lenient encoding]} rome-opt
+  [^InputStream stream & [opt-rome]]
+  (let [{:keys [lenient encoding]} opt-rome
         lenient (boolean lenient)]
     (reader->feed
      (XmlReader. ^InputStream stream lenient encoding))))
 
 
 (defn parse-file
-  [^String path & [rome-opt]]
+  [^String path & [opt-rome]]
   (let [stream (io/input-stream (io/as-file path))]
-    (parse-stream stream rome-opt)))
+    (parse-stream stream opt-rome)))
 
 
 (defn- parse-http-resp
-  [http-resp & [rome-opt]]
-  (let [{:keys [lenient ^String encoding]} rome-opt
+  [http-resp & [opt-rome]]
+  (let [{:keys [status body headers]} http-resp
+        {:keys [^String content-type]} headers
 
-        lenient (boolean lenient)
+        {:keys [lenient ^String encoding]} opt-rome
+        lenient (boolean lenient)]
 
-        {:keys [status body headers]} http-resp
-        {:keys [^String content-type]} headers]
-
-    (reader->feed
-     (XmlReader. ^InputStream body content-type lenient encoding))))
+    (when (= status 200)
+      (reader->feed
+       (XmlReader. ^InputStream body content-type lenient encoding)))))
 
 
-(def http-opt-default
+(def opt-http-default
   {:as :stream
    :throw-exceptions true})
 
 
 (defn parse-url
-  [url & [http-opt rome-opt]]
-  (let [opt (merge http-opt http-opt-default)
+  [url & [opt-http opt-rome]]
+  (let [opt (merge opt-http opt-http-default)
         resp (client/get url opt)]
     {:response resp
-     :feed (parse-http-resp resp rome-opt)}))
+     :feed (parse-http-resp resp opt-rome)}))
 
 
 ;;
