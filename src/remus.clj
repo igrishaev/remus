@@ -51,7 +51,7 @@
 
 (defn parse-stream
   [^InputStream stream & [opt-rome]]
-  (let [{:keys [lenient encoding]} opt-rome
+  (let [{:keys [lenient ^String encoding]} opt-rome
         lenient (boolean lenient)]
     (reader->feed
      (XmlReader. ^InputStream stream lenient encoding))))
