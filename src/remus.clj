@@ -151,7 +151,7 @@
 
 
 (defn rome-extra
-  [obj]
+  [^SyndEntry obj]
   (->xml :extra
          nil
          (map ->clj (.getForeignMarkup obj))))
@@ -209,7 +209,7 @@
 
 
 (defn xml-full-name
-  [obj]
+  [^Element obj]
   (keyword (.getNamespacePrefix obj)
            (.getName obj)))
 
