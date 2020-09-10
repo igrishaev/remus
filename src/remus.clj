@@ -151,7 +151,7 @@
 
 
 (defn rome-extra
-  [^SyndEntry obj]
+  [obj]
   (->xml :extra
          nil
          (map ->clj (.getForeignMarkup obj))))
