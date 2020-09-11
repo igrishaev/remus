@@ -43,7 +43,7 @@ information from a feed as possible.
 Add it into your `:dependencies` vector:
 
 ```clj
-[remus "0.1.0-SNAPSHOT"]
+[remus "0.2.0"]
 ```
 
 ## Usage
