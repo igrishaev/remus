@@ -209,7 +209,7 @@
 
 
 (defn xml-full-name
-  [obj]
+  [^Element obj]
   (keyword (.getNamespacePrefix obj)
            (.getName obj)))
 
