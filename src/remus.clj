@@ -43,7 +43,7 @@
 
 (defn- reader->feed
   [^XmlReader reader]
-  (let [input (new SyndFeedInput)
+  (let [input          (new SyndFeedInput)
         ^SyndFeed feed (.build input reader)]
     (->clj feed)))
 
@@ -52,20 +52,18 @@
 ;; Parsing
 ;;
 
-
-(defn parse-input-stream
-  [stream content-type lenient encoding]
-  (reader->feed (new XmlReader
-                     ^InputStream stream
-                     content-type
-                     lenient
-                     encoding)))
+(defn parse-stream
+  [^InputStream stream & [opt-rome]]
+  (let [{:keys [lenient ^String encoding]} opt-rome
+        lenient                            (boolean lenient)]
+    (reader->feed
+      (XmlReader. ^InputStream stream lenient encoding))))
 
 
 (defn parse-file
   [^String path & [opt-rome]]
   (let [stream (io/input-stream (io/as-file path))]
-    (parse-input-stream stream opt-rome)))
+    (parse-stream stream opt-rome)))
 
 
 (defn- parse-http-resp
