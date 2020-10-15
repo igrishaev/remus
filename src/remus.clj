@@ -1,9 +1,13 @@
 (ns remus
   "Clojure wrapper around Java Rome tools.
-  See https://github.com/igrishaev/remus"
+  See https://github.com/igrishaev/remus
+
+  https://javadoc.io/doc/com.rometools/rome/latest/index.html
+  http://www.jdom.org/docs/apidocs/org/jdom2/Element.html
+  http://www.jdom.org/docs/apidocs/org/jdom2/Attribute.html"
 
   (:require [clj-http.client :as client]
-
+            [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.xml :as xml])
 
@@ -39,7 +43,7 @@
 
 (defn- reader->feed
   [^XmlReader reader]
-  (let [input (new SyndFeedInput)
+  (let [input          (new SyndFeedInput)
         ^SyndFeed feed (.build input reader)]
     (->clj feed)))
 
@@ -48,13 +52,12 @@
 ;; Parsing
 ;;
 
-
 (defn parse-stream
   [^InputStream stream & [opt-rome]]
   (let [{:keys [lenient ^String encoding]} opt-rome
-        lenient (boolean lenient)]
+        lenient                            (boolean lenient)]
     (reader->feed
-     (XmlReader. ^InputStream stream lenient encoding))))
+      (XmlReader. ^InputStream stream lenient encoding))))
 
 
 (defn parse-file
@@ -150,44 +153,51 @@
 (def ->xml (partial struct xml/element))
 
 
-(defn rome-extra
-  [obj]
-  (->xml :extra
-         nil
-         (map ->clj (.getForeignMarkup obj))))
+(defn rome-xml-extra [els]
+  (when-let [els (seq els)]
+    (->xml :rome/extra
+           nil
+           (seq (map ->clj els)))))
+
+
+(defn rome-feed-extra
+  [^SyndFeed f]
+  (rome-xml-extra (.getForeignMarkup f)))
+
+
+(defn rome-entry-extra
+  [^SyndEntry e]
+  (rome-xml-extra (.getForeignMarkup e)))
 
 
 (extend-type SyndEntry
   ToClojure
   (->clj [e]
-    {:authors        (map ->clj (seq (.getAuthors e)))
-     :categories     (map ->clj (seq (.getCategories e)))
-     :contents       (map ->clj (seq (.getContents e)))
-     :contributors   (map ->clj (seq (.getContributors e)))
-     :enclosures     (map ->clj (seq (.getEnclosures e)))
-     :description    (when-let [d (.getDescription e)]
-                       (->clj d))
-     :author         (.getAuthor e)
+    {:authors        (seq (map ->clj (.getAuthors e)))
+     :categories     (seq (map ->clj (.getCategories e)))
+     :contents       (seq (map ->clj (.getContents e)))
+     :contributors   (seq (map ->clj (.getContributors e)))
+     :enclosures     (seq (map ->clj (.getEnclosures e)))
+     :description    (some-> e .getDescription ->clj)
+     :author         (-> e .getAuthor not-empty)
      :link           (.getLink e)
      :published-date (.getPublishedDate e)
      :title          (.getTitle e)
      :updated-date   (.getUpdatedDate e)
      :uri            (.getUri e)
      :comments       (.getComments e)
-
-     :extra          (rome-extra e)}))
+     :extra          (rome-entry-extra e)}))
 
 
 (extend-type SyndFeed
   ToClojure
   (->clj [f]
-    {:authors        (map ->clj (seq (.getAuthors f)))
-     :categories     (map ->clj (seq (.getCategories f)))
-     :contributors   (map ->clj (seq (.getContributors f)))
-     :entries        (map ->clj (seq (.getEntries f)))
-     :entry-links    (map ->clj (seq (.getLinks f)))
-     :image          (when-let [i (.getImage f)]
-                       (->clj i))
+    {:authors        (seq (map ->clj (.getAuthors f)))
+     :categories     (seq (map ->clj (.getCategories f)))
+     :contributors   (seq (map ->clj (.getContributors f)))
+     :entries        (seq (map ->clj (.getEntries f)))
+     :entry-links    (seq (map ->clj (.getLinks f)))
+     :image          (some-> f .getImage ->clj)
      :author         (.getAuthor f)
      :copyright      (.getCopyright f)
      :description    (.getDescription f)
@@ -198,45 +208,52 @@
      :published-date (.getPublishedDate f)
      :title          (.getTitle f)
      :uri            (.getUri f)
-     :icon           (when-let [i (.getIcon f)]
-                       (->clj i))
+     :icon           (some-> f .getIcon ->clj)
      :docs           (.getDocs f)
      :generator      (.getGenerator f)
      :editor         (.getManagingEditor f)
      :webmaster      (.getWebMaster f)
-
-     :extra          (rome-extra f)}))
-
-
-(defn xml-full-name
-  [obj]
-  (keyword (.getNamespacePrefix obj)
-           (.getName obj)))
+     :extra          (rome-feed-extra f)}))
 
 
-;; http://www.jdom.org/docs/apidocs/org/jdom2/Element.html
+(defn get-xml-name [tag-ns tag-name]
+  (if (str/blank? tag-ns)
+    (keyword tag-name)
+    (keyword tag-ns tag-name)))
+
+
+(defn get-element-name
+  [^Element e]
+  (get-xml-name (.getNamespacePrefix e) (.getName e)))
+
+
+(defn get-attribute-name
+  [^Attribute a]
+  (get-xml-name (.getNamespacePrefix a) (.getName a)))
+
+
+(defn get-el-attrs [^Element e]
+  (reduce
+    (fn [result ^Attribute a]
+      (assoc result (get-attribute-name a) (.getValue a)))
+    nil
+    (.getAttributes e)))
+
+
 (extend-type Element
   ToClojure
   (->clj [e]
-
     (->xml
-     ;; name
-     (xml-full-name e)
-
-     ;; attrs
-     (not-empty
-      (into {}
-            (map (juxt :name :value)
-                 (map ->clj (.getAttributes e)))))
-
-     ;; children
-     (or (not-empty (map ->clj (.getChildren e)))
-         (not-empty (.getText e))))))
+      (get-element-name e)
+      (get-el-attrs e)
+      (or (seq (map ->clj (.getChildren e)))
+          (when-let [text (-> e .getText not-empty)]
+            [text])))))
 
 
 ;; http://www.jdom.org/docs/apidocs/org/jdom2/Attribute.html
 (extend-type Attribute
   ToClojure
   (->clj [a]
-    {:name (xml-full-name a)
+    {:name (get-attribute-name a)
      :value (.getValue a)}))
