@@ -2,7 +2,8 @@
   (:require [remus :as r]
             [clojure.test :refer :all]
             [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.xml :as xml])
   (:import java.util.zip.GZIPInputStream))
 
 (defn parse-gzip-file
@@ -57,12 +58,10 @@
                                 :value)
                             "Президент"))))
   (testing "youtube"
-    (let [parsed-file (parse-gzip-file "resources/youtube.xml.gz")
-          extra       {:tag   :rome/extra,
-                       :attrs nil,
-                       :content
-                       [{:tag :yt/channelId, :attrs nil, :content ["UCaLlzGqiPE2QRj6sSOawJRg"]}]}]
-      (is (= extra (:extra parsed-file)))
+    (let [parsed-file   (parse-gzip-file "resources/youtube.xml.gz")
+          extra-xml-str "<extra>\n<channelId>\nUCaLlzGqiPE2QRj6sSOawJRg\n</channelId>\n</extra>\n"]
+      (is (= extra-xml-str (with-out-str
+                             (xml/emit-element (:extra parsed-file)))))
       (is (= youtube-extra (-> parsed-file
                                :entries
                                first
