@@ -21,6 +21,7 @@
   :dependencies [[com.rometools/rome "1.15.0"]
                  [clj-http "3.10.2"]]
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.10.1"]]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.10.1"]
+                                  [log4j/log4j "1.2.17"]]
                    :global-vars  {*warn-on-reflection* true
                                   *assert*             true}}})
