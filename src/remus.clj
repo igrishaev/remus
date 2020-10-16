@@ -45,20 +45,16 @@
                     :encoding encoding}
                    opt-rome)]
 
-    (when (http/response-200? http-resp)
+    (when (and (http/response-200? http-resp)
+               (http/response-xml? http-resp))
       (-> body
           (rome/make-reader opt)
           (rome/reader->feed)))))
 
 
-(def opt-http-default
-  {:as :stream
-   :throw-exceptions true})
-
-
 (defn parse-url
   [url & [opt-http opt-rome]]
-  (let [opt (merge opt-http opt-http-default)
+  (let [opt (merge opt-http http/opt-default)
         resp (client/get url opt)]
     {:response resp
      :feed (parse-http-resp resp opt-rome)}))

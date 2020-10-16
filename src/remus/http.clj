@@ -3,6 +3,11 @@
    [clojure.string :as str]))
 
 
+(def opt-default
+  {:as :stream
+   :throw-exceptions true})
+
+
 (def rss-mime-types
   #{"application/rss+xml"
     "application/rdf+xml"
