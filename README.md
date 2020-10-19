@@ -5,8 +5,8 @@
 [clj-http]: https://github.com/dakrone/clj-http
 
 An attentive RSS and Atom feed parser for Clojure. It's built on top of
-well-known and powerful [ROME Tools][rome-site] Java library. It deals with
-encoding issues and non-standard XML tags. Remus aimed at extracting as much
+well-known and powerful [ROME Tools][rome-site] Java library. Remus deals with
+weird encoding and non-standard XML tags. The library fetches as much
 information from a feed as possible.
 
 ![](art/romulus-remus.jpg)
@@ -30,11 +30,11 @@ information from a feed as possible.
 
 ## Benefits
 
-- Fetches all the known fields from a feed and turns them into plain Clojure
-  data structures;
+- Gets all the known fields from a feed and turns them into plain Clojure data
+  structures;
 - relies on up-to-date ROME release;
-- uses all the power of [clj-http][clj-http] for HTTP(s) communication instead
-  of deprecated ROME Fetcher;
+- uses the power of [clj-http][clj-http] client instead of deprecated ROME
+  Fetcher;
 - preserves all the non-standard XML tags for further processing (see example
   below).
 
@@ -43,12 +43,13 @@ information from a feed as possible.
 Add it into your `:dependencies` vector:
 
 ```clj
-[remus "0.2.0"]
+[remus "0.2.1"]
 ```
 
 ## Usage
 
-First, import the library:
+The library provides a one-word top namespace `remus` so it's easier to
+remember.
 
 ```clojure
 (ns your.project
@@ -61,14 +62,18 @@ or:
 (require '[remus :refer [parse-url parse-file]])
 ```
 
+
 ### Parsing a URL
+
+Let's parse [Planet Clojure](http://planet.clojure.in/):
 
 ```clojure
 (def result (parse-url "http://planet.clojure.in/atom.xml"))
 ```
 
-The variable `result` is a map with two keys: `:response` and `:feed`. These are
-HTTP response and a parsed feed. Here is a truncated version of a feed:
+The variable `result` is a map of two keys: `:response` and `:feed`. These are
+an HTTP response and a parsed feed. Below, there is a truncated version of a
+feed:
 
 ```clojure
 (def feed (:feed result))
@@ -80,42 +85,42 @@ HTTP response and a parsed feed. Here is a truncated version of a feed:
 ;;;;
 
 {:description nil,
- :feed-type "atom_1.0",
+ :feed-type "atom_1.0"
  :entries
- [{:description nil,
-   :updated-date #inst "2018-08-13T10:00:00.000-00:00",
-   :extra {:tag :extra, :attrs nil, :content ()},
+ [{:description nil
+   :updated-date #inst "2018-08-13T10:00:00.000-00:00"
+   :extra {:tag :extra, :attrs nil, :content ()}
    :title
-   "PurelyFunctional.tv Newsletter 287: DataScript, GraphQL, CRDTs",
-   :author "Eric Normand",
+   "PurelyFunctional.tv Newsletter 287: DataScript, GraphQL, CRDTs"
+   :author "Eric Normand"
    :link
-   "https://purelyfunctional.tv/issues/purelyfunctional-tv-newsletter-287-datascript-graphql-crdts/",
-   :uri "https://purelyfunctional.tv/?p=28660",
+   "https://purelyfunctional.tv/issues/purelyfunctional-tv-newsletter-287-datascript-graphql-crdts/"
+   :uri "https://purelyfunctional.tv/?p=28660"
    :contents
-   ({:type "html",
-     :mode nil,
+   ({:type "html"
+     :mode nil
      :value
      "<div class=\" reset\">\n<p><em>Issue 287 August 13, 2018 <a href=\"https://purelyfunctional.tv/newsletter-archives/\">Archives</a> <a href=\"https://purelyfunctional.tv/newsletter/\" title=\"Thanks, Jeff!\">Subscribe</a></em></p>\n<p>Hi Clojurationists,</p>\n<p>I've just been digging <a href=\"https://twitter.com/puredanger/status/1028103654241443840\" title=\"\">this lovely tweet from Alex Miller</a>.</p>\n<p>Rock on!<br /><a href=\"http://twitter.com/ericnormand\">Eric Normand</a> &lt;<a href=\"mailto: ... "}),
- :published-date #inst "2018-08-13T11:59:11.000-00:00",
+ :published-date #inst "2018-08-13T11:59:11.000-00:00"
  :entry-links
- ({:rel "alternate",
-   :href "http://planet.clojure.in/",
+ ({:rel "alternate"
+   :href "http://planet.clojure.in/"
    :length 0}
-  {:rel "self",
+  {:rel "self"
    :href "http://planet.clojure.in/atom.xml",
-   :length 0}),
- :title "Planet Clojure",
- :language nil,
- :link "http://planet.clojure.in/",
- :uri "http://planet.clojure.in/atom.xml",
+   :length 0})
+ :title "Planet Clojure"
+ :language nil
+ :link "http://planet.clojure.in/"
+ :uri "http://planet.clojure.in/atom.xml"
  :authors ()}
 ```
 
 </details>
 
 As for HTTP response, it's the same data structure that
-`clj-http.client/response` function returns. You'll need that data to save some
-of the HTTP headers for further requests (see below).
+`clj-http.client/response` function returns. You might need that data to save
+some of the HTTP headers for further requests (see below).
 
 ### Parsing a file
 
@@ -123,9 +128,11 @@ of the HTTP headers for further requests (see below).
 (def feed (parse-file "/path/to/some/atom.xml"))
 ```
 
-This function returns a parsed feed.
+This function just returns a parsed feed.
 
 ### Parsing an input stream
+
+Just in case you're getting a feed from a stream, here is a function for that:
 
 ```clojure
 (def feed (parse-stream (clojure.java.io/input-stream some-source)))
@@ -133,7 +140,7 @@ This function returns a parsed feed.
 
 Like `parse-file`, it returns a parsed feed as a data structure.
 
-## HTTP communication tweaks
+## HTTP tweaks
 
 Since `Remus` relies on [clj-http][clj-http] library for HTTP communication, you
 are welcome to use all its features. For example, to control redirects, security
@@ -156,16 +163,28 @@ with HTTP parameters:
            {:headers {"User-Agent" "Mozilla/5.0 (Macintosh; Intel Mac...."}})
 ```
 
-Remus overrides just two options: `:as` and `:throw-exceptions`. No matter if
-you pass them, their values will become `:stream` and `true`. We use streamed
-HTTP response since ROME works better with raw binary content rather then parsed
-string. We throw exceptions for non-200 responses to prevent parsing their
-content.
+Remus overrides **just one option** which is `:as`. No matter what you put into
+it, the value becomes `:stream`. We need a streamed HTTP response because ROME
+relies on an input stream.
 
-Here is how you can access the negative HTTP response:
+### Errors and exceptions
+
+It's up to you how to deal with non-200 HTTP responses. Even if you pass
+`{:throw-exceptions false}`, the feed only be parsed when the status code is
+200.
 
 ```clojure
+(let [result (parse-url "http://example.com/non-existing-url"
+                               {:throw-exceptions false})
+             {:keys [response feed]} result]
+         (when-not feed
+           (process-non-200 response)))
+```
 
+Or just skip the `:throw-exceptions` flag and wrap everything into the standard
+`try/catch` form:
+
+```clojure
 (try
   (parse-url "http://non-existing-url")
   (catch ExceptionInfo e
@@ -180,27 +199,37 @@ Here is how you can access the negative HTTP response:
 
 [slingshot]: https://github.com/scgilardi/slingshot
 
-Or you may use the [Slingshot][slingshot] approach to catch HTTP-thrown
-exceptions as the [official manual][clj-http-ex] describes.
+Alternately, you may use the [Slingshot][slingshot] approach to catch
+HTTP-thrown exceptions as the [official manual][clj-http-ex] describes.
+
+### Saving headers
 
 [cond-get]: https://fishbowl.pastiche.org/2002/10/21/http_conditional_get_for_rss_hackers
 
-When parsing a URL, a good option would be to pass `If-None-Match` and
-`If-Modified-Since` headers with values gotten from `Etag` and `Last-Modified`
-headers of a previous response. This trick is know as [conditional
-GET][cond-get] and might prevent server from sending the data you've already
+When parsing a URL, a good option would be to pass the `If-None-Match` and
+`If-Modified-Since` headers with the values from the `Etag` and `Last-Modified`
+ones from the previous response. This trick is know as [conditional
+GET][cond-get]. It might prevent server from sending the data you've already
 received before:
 
 ```clojure
+;; returns the whole feed
 (def result (parse-url "http://planet.lisp.org/rss20.xml"))
 
+;; split the result
 (def feed (:feed result))
+(def response (:response result))
 
-(def etag (-> result :response :headers :etag))
+;; ensure we got the data
+(:length response)
+48082
+
+;; save the headers
+(def etag (-> response :headers :etag))
 ;; "5b71766f-2f597"
 
-(def last-modified (-> result :response :headers :last-modified))
-;; Mon, 13 Aug 2018 12:15:43 GMT
+(def last-modified (-> response :headers :last-modified))
+;; Mon, 19 Oct 2020 12:15:27 GMT
 
 ;;;;
 ;; Now, try to fetch data passing conditionals headers:
@@ -211,27 +240,14 @@ received before:
              {:headers {"If-None-Match" etag
                         "If-Modified-Since" last-modified}}))
 
-(println result-new)
+(-> result-new :response :status)
+304
 
-{:response
- {:request-time 741,
-  :repeatable? false,
-  :protocol-version {:name "HTTP", :major 1, :minor 1},
-  :streaming? false,
-  :chunked? false,
-  :reason-phrase "Not Modified",
-  :headers
-  {"Server" "nginx/1.9.0",
-   "Date" "Mon, 13 Aug 2018 13:47:12 GMT",
-   "Last-Modified" "Mon, 13 Aug 2018 12:15:43 GMT",
-   "Connection" "close",
-   "ETag" "\"5b71766f-2f597\""},
-  :orig-content-encoding nil,
-  :status 304,
-  :length 0,
-  :body nil,
-  :trace-redirects []},
- :feed nil}
+(-> result-new :response :length)
+0
+
+(-> result-new :feed)
+nil
 ```
 
 Since the server returned non-200 but positive status code (304 in our case), we
@@ -242,8 +258,8 @@ variable will be `nil`.
 
 [youtube-rss]: https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg
 
-Sometimes, RSS/Atom feeds ship additional data in non-standard tags. A good
-example might be a typical [YouTube feed][youtube-rss]. Let's examine one of its
+Sometimes, a feed ships additional data with non-standard tags. A good example
+might be a typical [YouTube feed][youtube-rss]. Let's examine one of its
 entries:
 
 ```xml
@@ -278,21 +294,18 @@ entries:
 
 In addition to the standard fields, the feed carries information about the video
 ID, channel ID and statistics: views count, the number of times the video was
-starred and its average rating.
+starred and its average rating. You would probably want to use that data.
 
-Or if you parse geo-related feeds, probably you'll face lat/lot coordinates,
-location names, etc.
+Alternately, if you parse a geo-related feed, you'll get lat/lot coordinates,
+location names, tracks, etc.
 
 Other RSS parsers either drop this data or require you to write a custom
-extension. But `Remus` squashes all the non-standard tags into a parsed XML
-data. It puts that data into an `:extra` field for each entry and on the top
-level of a feed.
-
-This is how you can touch the extra data:
+extension. `Remus` provides all the non-standard tags as a parsed XML
+structure. It puts that data into an `:extra` field for each entry and on the
+top level of a feed. This is how you can reach it:
 
 ```clojure
-(def result (parse-url
-"https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg"))
+(def result (parse-url "https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg"))
 
 (def feed (:feed result))
 
@@ -300,46 +313,58 @@ This is how you can touch the extra data:
 ;; Get entry-specific custom data
 ;;;;
 
+;; Extra data from the first entry:
 (-> feed :entries first :extra)
 
-{:tag :extra,
- :attrs nil,
+{:tag :rome/extra
+ :attrs nil
  :content
- ({:tag :yt/videoId, :attrs nil, :content "TbthtdBw93w"}
-  {:tag :yt/channelId,
-   :attrs nil,
-   :content "UCaLlzGqiPE2QRj6sSOawJRg"}
-  {:tag :media/group,
-   :attrs nil,
+ ({:tag :yt/videoId :attrs nil :content ["faoXSarGgEI"]}
+  {:tag :yt/channelId :attrs nil :content ["UCaLlzGqiPE2QRj6sSOawJRg"]}
+  {:tag :media/group
+   :attrs nil
    :content
-   ({:tag :media/title,
-     :attrs nil,
-     :content "Datomic Ions in Seven Minutes"}
-    {:tag :media/content, :attrs #, :content nil}
-    {:tag :media/thumbnail, :attrs #, :content nil}
-    {:tag :media/description,
-     :attrs nil,
+   ({:tag :media/title :attrs nil :content ["Datomic Cloud - Datoms"]}
+    {:tag :media/content
+     :attrs
+     {:url "https://www.youtube.com/v/faoXSarGgEI?version=3"
+      :type "application/x-shockwave-flash"
+      :width "640"
+      :height "390"}
+     :content nil}
+    {:tag :media/thumbnail
+     :attrs
+     {:url "https://i3.ytimg.com/vi/faoXSarGgEI/hqdefault.jpg"
+      :width "480"
+      :height "360"}
+     :content nil}
+    {:tag :media/description
+     :attrs nil
      :content
-     "Stuart Halloway introduces Ions for Datomic Cloud on AWS."}
-    {:tag :media/community, :attrs nil, :content #})})}
+     ["Check out the live animated tutorial: https://docs.datomic.com/cloud/livetutorial/datoms.html\n\nYour Datomic database consists of datoms. What are Datoms?"]}
+    {:tag :media/community
+     :attrs nil
+     :content
+     ({:tag :media/starRating
+       :attrs {:count "72" :average "5.00" :min "1" :max "5"}
+       :content nil}
+      {:tag :media/statistics :attrs {:views "2014"} :content nil})})})}
 
 
 ;;;;
-;; Get feed-specific custom data
+;; Get feed-specific extra:
 ;;;;
 
 (-> feed :extra)
 
-{:tag :extra,
- :attrs nil,
+{:tag :rome/extra
+ :attrs nil
  :content
- ({:tag :yt/channelId,
-   :attrs nil,
-   :content "UCaLlzGqiPE2QRj6sSOawJRg"})}
+ ({:tag :yt/channelId :attrs nil :content ["UCaLlzGqiPE2QRj6sSOawJRg"]})}
 ```
 
-The extra data follows XML-friendly format so it can be processed with any
-XML-related technics: walking, zippers, etc.
+The `:extra` fields follow the standard XML-friendly structure so they can be
+processed with any XML-related technics like walking, zippers, etc.
 
 ## Encoding issues
 
@@ -348,11 +373,22 @@ ROME-related options. Use them to solve XML-decoding issues when dealing with
 weird or non-set HTTP headers. ROME's got a solid algorithm to guess encoding,
 but sometimes it might need your help.
 
-At the moment, `Remus` supports `:lenient` and `:encoding` options. The first
-one indicates if ROME should try to guess encoding in case of XML parsing
-error. For guessing, it tries to use encoding passed under `:encoding` key.
+At the moment, Remus supports `:lenient`, `:encoding` and `content-type` options
+with has the following meaning:
 
-Dealing with Windows encoding and unset Content-type/encoding headers:
+- `lenient`: a boolean flag which makes Rome to be more loyal to some mistakes
+  in XML markup;
+
+- `encoding`: a string which represents the encoding of the feed.  When parsing
+  a URL, it comes from the `Content-Encoding` HTTP header.  Possible values are
+  listed here: https://docs.oracle.com/javase/8/docs/technotes/guides/intl/encoding.doc.html
+
+- `content-type`: a string meaning the MIME type of the feed,
+  e.g. `application/rss` or something. When parsing a URL, it comes from the
+  `Content-Type` header.
+
+Dealing with Windows encoding and unset `Content-type` or `Content-Encoding`
+headers:
 
 ```clojure
 (parse-url "https://some/rss.xml" nil {:lenient true :encoding "cp1251"})
@@ -362,12 +398,13 @@ The same options work for parsing a file or a stream:
 
 ```clojure
 (parse-file "https://another/atom.xml" {:lenient true :encoding "cp1251"})
+
 (parse-stream in-source {:lenient true :encoding "cp1251"})
 ```
 
 ## License
 
-Copyright © 2018 Ivan Grishaev
+Copyright © 2020 Ivan Grishaev
 
 Distributed under the Eclipse Public License either version 1.0 or (at your
 option) any later version.
