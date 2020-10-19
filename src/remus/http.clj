@@ -4,8 +4,7 @@
 
 
 (def opt-default
-  {:as :stream
-   :throw-exceptions true})
+  {:as :stream})
 
 
 (def rss-mime-types
