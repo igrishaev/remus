@@ -189,7 +189,7 @@ Or just skip the `:throw-exceptions` flag and wrap everything into the standard
 ```clojure
 (try
   (parse-url "http://non-existing-url")
-  (catch ExceptionInfo e
+  (catch clojure.lang.ExceptionInfo e
     (let [response (ex-data e)
           {:keys [status headers]} response]
       (println status headers)
