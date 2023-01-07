@@ -1,4 +1,4 @@
-(defproject remus "0.2.3"
+(defproject remus "0.2.4-SNAPSHOT"
   :description "Attentive RSS/Atom feed parser"
 
   :deploy-repositories {"releases" {:url "https://repo.clojars.org" :creds :gpg}}
