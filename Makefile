@@ -8,5 +8,5 @@ toc-install:
 toc-build:
 	node_modules/.bin/markdown-toc -i README.md
 
-deploy:
-	lein deploy clojars
+release:
+	lein release
