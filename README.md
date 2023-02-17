@@ -42,10 +42,16 @@ information from a feed as possible.
 
 ## Installation
 
-Add it into your `:dependencies` vector:
+Leiningen/Boot:
 
-```clj
-[remus "0.2.3"]
+```clojure
+[remus "0.2.4"]
+```
+
+Clojure CLI/deps.edn
+
+```clojure
+remus/remus {:mvn/version "0.2.4"}
 ```
 
 ## Usage
