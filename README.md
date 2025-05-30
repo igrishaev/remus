@@ -33,9 +33,10 @@ information from a feed as possible.
 
 - Gets all the known fields from a feed and turns them into plain Clojure data
   structures;
-- relies on the built-in Java HTTP client (via the [babashka-http][http-client] library);
-- preserves all the non-standard XML tags for further processing (see an example
-  below).
+- relies on the built-in Java HTTP client (via the [babashka-http][http-client]
+  library);
+- supports HTTP2 protocol;
+- preserves non-standard XML tags for further processing (see an example below).
 
 ## Installation
 
