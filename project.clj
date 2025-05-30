@@ -19,8 +19,8 @@
   "https://github.com/igrishaev/remus"
 
   :license
-  {:name "Eclipse Public License"
-   :url  "http://www.eclipse.org/legal/epl-v10.html"}
+  {:name "The Unlicense"
+   :url "https://unlicense.org/"}
 
   :managed-dependencies
   [[org.clojure/clojure "1.10.1"]

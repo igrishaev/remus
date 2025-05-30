@@ -6,6 +6,7 @@
 - encoding/charset naming
 - old functions are deprecated
 - better handling of HTTP headers
+- change license
 
 ## 28 Sep 2018
 - type hints added

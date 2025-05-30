@@ -19,14 +19,13 @@ information from a feed as possible.
 - [Installation](#installation)
 - [Usage](#usage)
   * [Parsing a URL](#parsing-a-url)
-  * [Parsing a file](#parsing-a-file)
-  * [Parsing an input stream](#parsing-an-input-stream)
+  * [Parsing a source](#parsing-a-source)
 - [HTTP tweaks](#http-tweaks)
-  * [Errors and exceptions](#errors-and-exceptions)
-  * [Saving headers](#saving-headers)
+  * [Error cases](#error-cases)
+  * [Saving extra data](#saving-extra-data)
 - [Non-standard tags](#non-standard-tags)
 - [Encoding issues](#encoding-issues)
-- [License](#license)
+- [Misc](#misc)
 
 <!-- tocstop -->
 
@@ -161,53 +160,35 @@ control redirects, security validation, authentication, etc. When calling
 ```
 
 Remus overrides the following HTTP options:
-- `:as` is always `:stream`
-- `:throw` is false: do not throw immediately on non-200 status. Instead, throw
-  an exception later when parsing a feed.
+- `:as` is always `:stream`;
+- `:throw` is false. It prevents the HTTP layer from throwing exceptions
+  immediately should a non-200 status met. Later on, an exception with
+  detailed message is thrown.
+- The `accept-encoding` HTTP header is set to `gzip` and `deflate`.
 
-----------
+### Error cases
 
+The library will argue on non-200 HTTP responses:
 
-**just one option** which is `:as`. No matter what you put into
-it, the value becomes `:stream`. We need a streamed HTTP response because ROME
-relies on an input stream.
+~~~clojure
+;; 404
+(remus/parse-url "http://planet.clojure.in/dunno")
 
-### Errors and exceptions
+Execution error at remus/parse-http-resp (remus.clj:108).
+Non-200 status code, status: 404, url: http://planet.clojure.in/dunno, content-type: text/html
+~~~
 
-It's up to you how to deal with non-200 HTTP responses. Even if you pass
-`{:throw-exceptions false}`, the feed only be parsed when the status code is
-200.
+The same applies to non-XML Content-Type header values:
 
-```clojure
-(let [result (parse-url "http://example.com/non-existing-url"
-                               {:throw-exceptions false})
-             {:keys [response feed]} result]
-         (when-not feed
-           (process-non-200 response)))
-```
+~~~clojure
+;; 200 but not XML
+(remus/parse-url "http://planet.clojure.in/")
 
-Or just skip the `:throw-exceptions` flag and wrap everything into the standard
-`try/catch` form:
+Execution error at remus/parse-http-resp (remus.clj:106).
+Non-XML response, status: 200, url: http://planet.clojure.in/, content-type: text/html
+~~~
 
-```clojure
-(try
-  (parse-url "http://non-existing-url")
-  (catch clojure.lang.ExceptionInfo e
-    (let [response (ex-data e)
-          {:keys [status headers]} response]
-      (println status headers)
-      ;; do anything you want
-      )))
-```
-
-[clj-http-ex]:https://github.com/dakrone/clj-http#exceptions
-
-[slingshot]: https://github.com/scgilardi/slingshot
-
-Alternately, you may use the [Slingshot][slingshot] approach to catch
-HTTP-thrown exceptions as the [official manual][clj-http-ex] describes.
-
-### Saving headers
+### Saving extra data
 
 [cond-get]: https://fishbowl.pastiche.org/2002/10/21/http_conditional_get_for_rss_hackers
 
@@ -219,7 +200,7 @@ received before:
 
 ```clojure
 ;; returns the whole feed
-(def result (parse-url "http://planet.lisp.org/rss20.xml"))
+(def result (remus/parse-url "http://planet.lisp.org/rss20.xml"))
 
 ;; split the result
 (def feed (:feed result))
@@ -241,9 +222,9 @@ received before:
 ;;;;
 
 (def result-new
-  (parse-url "http://planet.lisp.org/rss20.xml"
-             {:headers {"If-None-Match" etag
-                        "If-Modified-Since" last-modified}}))
+  (remus/parse-url "http://planet.lisp.org/rss20.xml"
+                   {:headers {"If-None-Match" etag
+                              "If-Modified-Since" last-modified}}))
 
 (-> result-new :response :status)
 304
@@ -310,7 +291,7 @@ structure. It puts that data into an `:extra` field for each entry and on the
 top level of a feed. This is how you can reach it:
 
 ```clojure
-(def result (parse-url "https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg"))
+(def result (remus/parse-url "https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg"))
 
 (def feed (:feed result))
 
@@ -373,10 +354,10 @@ processed with any XML-related technics like walking, zippers, etc.
 
 ## Encoding issues
 
-All the `parse-<something>` functions mentioned above take additional
-ROME-related options. Use them to solve XML-decoding issues when dealing with
-weird or non-set HTTP headers. ROME's got a solid algorithm to guess encoding,
-but sometimes it might need your help.
+All the parsing functions above take additional ROME-related options. Use them
+to solve XML-decoding issues when dealing with weird or non-set HTTP
+headers. ROME's got a solid algorithm to guess encoding, but sometimes it might
+need your help.
 
 At the moment, Remus supports `:lenient`, `:encoding` and `content-type` options
 with has the following meaning:
@@ -396,20 +377,23 @@ Dealing with Windows encoding and unset `Content-type` or `Content-Encoding`
 headers:
 
 ```clojure
-(parse-url "https://some/rss.xml" nil {:lenient true :encoding "cp1251"})
+(remus/parse-url "https://some/rss.xml"
+                 nil ;; skip http options
+                 {:lenient true :encoding "cp1251"})
 ```
 
 The same options work for parsing a file or a stream:
 
 ```clojure
-(parse-file "https://another/atom.xml" {:lenient true :encoding "cp1251"})
+(remus/parse-file "https://another/atom.xml" {:lenient true :encoding "cp1251"})
 
-(parse-stream in-source {:lenient true :encoding "cp1251"})
+(remus/parse-stream in-source {:lenient true :encoding "cp1251"})
 ```
 
-## License
+## Misc
 
-Copyright © 2020 Ivan Grishaev
-
-Distributed under the Eclipse Public License either version 1.0 or (at your
-option) any later version.
+~~~
+©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©
+Ivan Grishaev, 2025. © UNLICENSE ©
+©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©
+~~~

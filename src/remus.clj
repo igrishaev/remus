@@ -80,8 +80,14 @@
   "
   [http-resp & [opt-rome]]
 
-  (let [{:keys [status body headers]}
+  (let [{:keys [status
+                body
+                headers
+                request]}
         http-resp
+
+        {:keys [uri]}
+        request
 
         content-type
         (http/get-content-type http-resp)
@@ -97,8 +103,10 @@
     (if (http/response-200? status)
       (if (http/response-xml? content-type)
         (parse body opt)
-        (throw! "Non-XML response: %s %s" status content-type))
-      (throw! "Non-200 status code received: %s" status))))
+        (throw! "Non-XML response, status: %s, url: %s, content-type: %s"
+                status uri content-type))
+      (throw! "Non-200 status code, status: %s, url: %s, content-type: %s"
+              status uri content-type))))
 
 
 (defn parse-url
