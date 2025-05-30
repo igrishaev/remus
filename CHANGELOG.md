@@ -3,7 +3,9 @@
 
 - switch from clj-http to babashka-http
 - common parse function
--
+- encoding/charset naming
+- old functions are deprecated
+- better handling of HTTP headers
 
 ## 28 Sep 2018
 - type hints added
