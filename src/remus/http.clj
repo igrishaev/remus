@@ -4,10 +4,11 @@
 
 
 (def opt-default
-  {:as :stream})
+  {:as :stream
+   :throw false})
 
 
-(def rss-mime-types
+(def RSS_MIME_TYPES
   #{"application/rss+xml"
     "application/rdf+xml"
     "application/atom+xml"
@@ -32,9 +33,9 @@
           str/lower-case))
 
 
-(defn response-200? [response]
-  (-> response :status (= 200)))
+(defn response-200? [status]
+  (= status 200))
 
 
-(defn response-xml? [response]
-  (->> response get-content-type (contains? rss-mime-types)))
+(defn response-xml? [content-type]
+  (contains? RSS_MIME_TYPES content-type))

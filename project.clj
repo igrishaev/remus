@@ -22,12 +22,19 @@
   {:name "Eclipse Public License"
    :url  "http://www.eclipse.org/legal/epl-v10.html"}
 
+  :managed-dependencies
+  [[org.clojure/clojure "1.10.1"]
+   [com.rometools/rome "1.18.0"]
+   [org.babashka/http-client "0.4.22"]
+   [log4j/log4j "1.2.17"]]
+
   :dependencies
-  [[com.rometools/rome "1.18.0"]
-   [clj-http "3.12.3"]]
+  [[org.clojure/clojure :scope "provided"]
+   [com.rometools/rome]
+   [org.babashka/http-client]]
 
   :profiles
-  {:dev {:dependencies [[org.clojure/clojure "1.10.1"]
-                        [log4j/log4j "1.2.17"]]
+  {:dev {:dependencies [[org.clojure/clojure]
+                        [log4j/log4j]]
          :global-vars  {*warn-on-reflection* true
                         *assert*             true}}})

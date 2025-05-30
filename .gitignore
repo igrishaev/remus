@@ -9,7 +9,9 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
-node_modules/
-package-lock.json
 .DS_Store
 .cpcache
+
+node_modules/
+package-lock.json
+package.json

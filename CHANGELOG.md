@@ -1,4 +1,10 @@
 
+## 0.2.5-SNAPSHOT
+
+- switch from clj-http to babashka-http
+- common parse function
+-
+
 ## 28 Sep 2018
 - type hints added
 

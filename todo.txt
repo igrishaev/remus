@@ -1,1 +1,3 @@
-- migrate to http-kit
+- update readme
+- create feed
+- integration tests?

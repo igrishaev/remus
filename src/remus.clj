@@ -5,10 +5,10 @@
 
   Rome options:
 
-  - `lenient`: a boolean flag which makes Rome to be more loyal
+  - `lenient`: a boolean flag which makes Rome to be more tolerant
     to some mistakes in XML markup;
 
-  - `encoding`: a string which represents the encoding of the feed.
+  - `encoding`: a string representing an encoding of the feed.
     When parsing a URL, it comes from the `Content-Encoding` HTTP header.
     Possible values are listed here:
     https://docs.oracle.com/javase/8/docs/technotes/guides/intl/encoding.doc.html
@@ -16,72 +16,94 @@
   - `content-type`: a string meaning the MIME type of the feed, e.g. `application/rss`
     or something. When parsing a URL, it comes from the `Content-Type` header.
   "
-
   (:require
-   [remus.rome :as rome]
-   [remus.http :as http]
-
+   [babashka.http-client :as client]
    [clojure.java.io :as io]
-
-   [clj-http.client :as client])
-
+   [remus.http :as http]
+   [remus.rome :as rome])
   (:import
    java.io.InputStream))
+
+
+(defmacro throw!
+  ([template]
+   `(throw (new RuntimeException template)))
+  ([template & args]
+   `(throw (new RuntimeException (format ~template ~@args)))))
 
 
 ;;
 ;; Parsing
 ;;
 
-(defn parse-stream
+
+(defn parse
   "
-  An utility function used as a bottleneck
-  for parsing a file, URL, etc.
+  Parse a feed from any find of a source: a file,
+  an input stream, a reader, a URL and so on.
+  Internally, the source gets coerced to the input
+  stream.
+  "
+  ([src]
+   (parse src nil))
+
+  ([src opt-rome]
+   (with-open [in (io/input-stream src)]
+     (-> in
+         (rome/make-reader opt-rome)
+         (rome/reader->feed)))))
+
+
+(defn ^:deprecated parse-stream
+  "
+  Parse an input stream. A legacy wrapper
+  on top of the `parse` function.
   "
   [^InputStream stream & [opt-rome]]
-  (-> stream
-      (rome/make-reader opt-rome)
-      (rome/reader->feed)))
+  (parse stream opt-rome))
 
 
 (defn parse-file
   "
-  Parse a feed from a file. Path is a string
-  referencing a file on disk.
+  Parse a file by its text path. A legacy
+  wrapper on top of the `parse` function.
   "
   [^String path & [opt-rome]]
-  (let [stream (-> path io/as-file io/input-stream)]
-    (parse-stream stream opt-rome)))
+  (parse (io/file path) opt-rome))
 
 
 (defn parse-http-resp
   "
-  Parse an HTTP response produced by the `clj-http` client
-  (`aleph.http` might also work). Most of the Rome flags
-  come from the HTTP headers, but you may redefine them
-  in the `opt-rome` map.
+  Parse a response produced by an HTTP client. Most
+  of the Rome flags come from the HTTP headers, but
+  you may redefine them using the `opt-rome` map.
   "
   [http-resp & [opt-rome]]
 
-  (let [{:keys [body]} http-resp
+  (let [{:keys [status body headers]}
+        http-resp
 
-        content-type (http/get-content-type http-resp)
-        encoding (http/get-encoding http-resp)
+        content-type
+        (http/get-content-type http-resp)
 
-        opt (merge {:content-type content-type
-                    :encoding encoding}
-                   opt-rome)]
+        encoding
+        (http/get-encoding http-resp)
 
-    (when (and (http/response-200? http-resp)
-               (http/response-xml? http-resp))
-      (-> body
-          (rome/make-reader opt)
-          (rome/reader->feed)))))
+        opt
+        (-> {:content-type content-type
+             :encoding encoding}
+            (merge opt-rome))]
+
+    (if (http/response-200? status)
+      (if (http/response-xml? content-type)
+        (parse body opt)
+        (throw! "Non-XML response: %s %s" status content-type))
+      (throw! "Non-200 status code received: %s" status))))
 
 
 (defn parse-url
   "
-  Parse feed from a URL. Returns a map of the `:response`
+  Parse feed from a URL. Return a map of the `:response`
   and `:feed` keys so you can access the response, e.g.
   to save some of the headers.
 
@@ -89,9 +111,9 @@
   and the content type is XML-friendly (see the possible values
   in the `remus.http` namespace).
 
-  The `opt-http` parameter is a map of `clj-http/aleph` options
-  which gets merged with the defaults. The `:as` parameters always
-  becomes `:stream` to reuse the `parse-stream` function.
+  The `opt-http` parameter is a map of http-specific options
+  which gets merged with the defaults. The `:as` parameter is
+  always `:stream`.
   "
   [url & [opt-http opt-rome]]
   (let [opt (merge opt-http http/opt-default)
