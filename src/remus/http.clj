@@ -5,7 +5,8 @@
 
 (def opt-default
   {:as :stream
-   :throw false})
+   :throw false
+   :headers {"accept-encoding" ["gzip" "deflate"]}})
 
 
 (def RSS_MIME_TYPES
@@ -16,12 +17,15 @@
     "text/xml"})
 
 
-(defn get-encoding
+(defn get-charset
   [request]
-  (some-> request
-          :headers
-          (get "content-encoding")
-          str/lower-case))
+  (when-let [content-type
+             (some-> request
+                     :headers
+                     (get "content-type"))]
+    (-> #"(?i)charset=([a-zA-Z0-9-_]+)"
+        (re-find content-type)
+        (second))))
 
 
 (defn get-content-type [response]
@@ -30,6 +34,7 @@
           (get "content-type")
           (str/split #";")
           first
+          str/trim
           str/lower-case))
 
 
@@ -38,4 +43,5 @@
 
 
 (defn response-xml? [content-type]
-  (contains? RSS_MIME_TYPES content-type))
+  (contains? RSS_MIME_TYPES
+             (str/lower-case content-type)))

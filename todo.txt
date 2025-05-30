@@ -1,3 +1,5 @@
 - update readme
 - create feed
 - integration tests?
+- update rome
+- rename core ns

@@ -2,6 +2,10 @@
 repl:
 	lein repl
 
+.PHONY: test
+test:
+	lein test
+
 toc-install:
 	npm install --save markdown-toc
 

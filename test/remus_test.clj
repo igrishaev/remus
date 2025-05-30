@@ -1,6 +1,6 @@
 (ns remus-test
   (:require [remus :as r]
-            [clojure.test :refer :all]
+            [clojure.test :refer [is deftest testing]]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.xml :as xml])

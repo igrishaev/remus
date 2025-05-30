@@ -20,7 +20,8 @@
    [babashka.http-client :as client]
    [clojure.java.io :as io]
    [remus.http :as http]
-   [remus.rome :as rome])
+   [remus.rome :as rome]
+   [remus.util :as util])
   (:import
    java.io.InputStream))
 
@@ -35,7 +36,6 @@
 ;;
 ;; Parsing
 ;;
-
 
 (defn parse
   "
@@ -63,7 +63,7 @@
   (parse stream opt-rome))
 
 
-(defn parse-file
+(defn ^:deprecated parse-file
   "
   Parse a file by its text path. A legacy
   wrapper on top of the `parse` function.
@@ -86,12 +86,12 @@
         content-type
         (http/get-content-type http-resp)
 
-        encoding
-        (http/get-encoding http-resp)
+        charset
+        (http/get-charset http-resp)
 
         opt
         (-> {:content-type content-type
-             :encoding encoding}
+             :encoding charset}
             (merge opt-rome))]
 
     (if (http/response-200? status)
@@ -108,15 +108,14 @@
   to save some of the headers.
 
   The feed will only be parsed when the HTTP status is 200
-  and the content type is XML-friendly (see the possible values
+  and the content type is XML-friendly (see possible values
   in the `remus.http` namespace).
 
   The `opt-http` parameter is a map of http-specific options
-  which gets merged with the defaults. The `:as` parameter is
-  always `:stream`.
+  which gets merged with the defaults.
   "
   [url & [opt-http opt-rome]]
-  (let [opt (merge opt-http http/opt-default)
+  (let [opt (util/deep-merge http/opt-default opt-http)
         resp (client/get url opt)]
     {:response resp
      :feed (parse-http-resp resp opt-rome)}))

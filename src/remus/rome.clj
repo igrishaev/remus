@@ -40,12 +40,15 @@
                                   encoding
                                   content-type]}]]
 
-  (let [lenient* (boolean lenient)
-        ^String encoding* (or encoding "UTF-8")]
+  (let [lenient
+        (boolean lenient)
+
+        ^String encoding
+        (or encoding "UTF-8")]
 
     (if content-type
-      (new XmlReader stream content-type lenient* encoding*)
-      (new XmlReader stream lenient* encoding*))))
+      (new XmlReader stream content-type lenient encoding)
+      (new XmlReader stream lenient encoding))))
 
 
 (defn reader->feed
