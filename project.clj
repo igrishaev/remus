@@ -1,4 +1,4 @@
-(defproject com.github.igrishaev/remus "0.2.5-SNAPSHOT"
+(defproject com.github.igrishaev/remus "0.2.5"
   :description "Attentive RSS/Atom feed parser"
 
   :deploy-repositories
