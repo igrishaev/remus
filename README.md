@@ -2,7 +2,7 @@
 
 [rome-site]: https://rometools.github.io/rome/
 
-[clj-http]: https://github.com/dakrone/clj-http
+[http-client]: https://github.com/babashka/http-client
 
 An attentive RSS and Atom feed parser for Clojure. It's built on top of
 well-known and powerful [ROME Tools][rome-site] Java library. Remus deals with
@@ -34,10 +34,8 @@ information from a feed as possible.
 
 - Gets all the known fields from a feed and turns them into plain Clojure data
   structures;
-- relies on up-to-date ROME release;
-- uses the power of [clj-http][clj-http] client instead of deprecated ROME
-  Fetcher;
-- preserves all the non-standard XML tags for further processing (see example
+- relies on the built-in Java HTTP client (via the [babashka-http][http-client] library);
+- preserves all the non-standard XML tags for further processing (see an example
   below).
 
 ## Installation
@@ -61,22 +59,15 @@ remember.
 
 ```clojure
 (ns your.project
-  (:require [remus :refer [parse-url parse-file]]))
+  (:require [remus]]))
 ```
-
-or:
-
-```clojure
-(require '[remus :refer [parse-url parse-file]])
-```
-
 
 ### Parsing a URL
 
 Let's parse [Planet Clojure](http://planet.clojure.in/):
 
 ```clojure
-(def result (parse-url "http://planet.clojure.in/atom.xml"))
+(def result (remus/parse-url "http://planet.clojure.in/atom.xml"))
 ```
 
 The variable `result` is a map of two keys: `:response` and `:feed`. These are
@@ -126,52 +117,58 @@ feed:
 
 </details>
 
-As for HTTP response, it's the same data structure that
-`clj-http.client/response` function returns. You might need that data to save
-some of the HTTP headers for further requests (see below).
+As for HTTP response, it's a data structure returned by an HTTP client. You
+might need it to save some of HTTP headers for further requests (see below).
 
-### Parsing a file
+### Parsing a source
 
-```clojure
-(def feed (parse-file "/path/to/some/atom.xml"))
-```
+The function `parse` accepts any kind of a source that can be coerced to an
+input stream: a file, a reader, and so on:
 
-This function just returns a parsed feed.
+~~~clojure
+(remus/parse "/path/to/file/xml"
+(remus/parse (get-some-input-stream...))
+~~~
 
-### Parsing an input stream
+There is a couple of deprecated functions called `parse-file` and `parse-stream`
+that act like `parse` (left for compatibility).
 
-Just in case you're getting a feed from a stream, here is a function for that:
-
-```clojure
-(def feed (parse-stream (clojure.java.io/input-stream some-source)))
-```
-
-Like `parse-file`, it returns a parsed feed as a data structure.
+All these functions return a parsed feed.
 
 ## HTTP tweaks
 
-Since `Remus` relies on [clj-http][clj-http] library for HTTP communication, you
-are welcome to use all its features. For example, to control redirects, security
-validation, authentication, etc. When calling `parse-url`, pass an optional map
-with HTTP parameters:
+Since `Remus` relies on HTTP interaction, sometimes you need to tweak it:
+control redirects, security validation, authentication, etc. When calling
+`parse-url`, specify an optional map with HTTP parameters:
 
 ```clojure
 ;; Do not check an untrusted SSL certificate.
-(parse-url "http://planet.clojure.in/atom.xml"
-           {:insecure? true})
+(remus/parse-url "http://planet.clojure.in/atom.xml"
+                 {:insecure true})
 
 
 ;; Parse a user/pass protected HTTP resource.
-(parse-url "http://planet.clojure.in/atom.xml"
-           {:basic-auth ["username" "password"]})
+(remus/parse-url "http://planet.clojure.in/atom.xml"
+                 {:basic-auth ["username" "password"]})
 
 
 ;; Pretending being a browser. Some sites protect access by "User-Agent" header.
-(parse-url "http://planet.clojure.in/atom.xml"
-           {:headers {"User-Agent" "Mozilla/5.0 (Macintosh; Intel Mac...."}})
+(remus/parse-url "http://planet.clojure.in/atom.xml"
+                 {:headers {"User-Agent" "Mozilla/5.0 (Macintosh; Intel Mac...."}})
+
+;; Setting a timeout
+(remus/parse-url "..." {:timeout 5000}) ;; wait up to 5 seconds
 ```
 
-Remus overrides **just one option** which is `:as`. No matter what you put into
+Remus overrides the following HTTP options:
+- `:as` is always `:stream`
+- `:throw` is false: do not throw immediately on non-200 status. Instead, throw
+  an exception later when parsing a feed.
+
+----------
+
+
+**just one option** which is `:as`. No matter what you put into
 it, the value becomes `:stream`. We need a streamed HTTP response because ROME
 relies on an input stream.
 
