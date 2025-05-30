@@ -43,13 +43,13 @@ information from a feed as possible.
 Leiningen/Boot:
 
 ```clojure
-[remus "0.2.4"]
+[remus "0.2.5"]
 ```
 
 Clojure CLI/deps.edn
 
 ```clojure
-remus/remus {:mvn/version "0.2.4"}
+remus/remus {:mvn/version "0.2.5"}
 ```
 
 ## Usage
