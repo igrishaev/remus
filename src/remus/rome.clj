@@ -52,8 +52,9 @@
 
 
 (defn reader->feed
-  [^XmlReader reader]
-  (let [input (new SyndFeedInput)
+  [^XmlReader reader & [{:keys [allow-doctypes]}]]
+  (let [input (doto (new SyndFeedInput)
+                (.setAllowDoctypes (boolean allow-doctypes)))
         ^SyndFeed feed (.build input reader)]
     (->clj feed)))
 

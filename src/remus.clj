@@ -15,6 +15,9 @@
 
   - `content-type`: a string meaning the MIME type of the feed, e.g. `application/rss`
     or something. When parsing a URL, it comes from the `Content-Type` header.
+
+  - `:allow-doctypes`: a boolean flag, if true, allows parsing feeds containing
+    DOCTYPE declarations (normally disallowed).
   "
   (:require
    [babashka.http-client :as client]
@@ -51,7 +54,7 @@
    (with-open [in (io/input-stream src)]
      (-> in
          (rome/make-reader opt-rome)
-         (rome/reader->feed)))))
+         (rome/reader->feed opt-rome)))))
 
 
 (defn ^:deprecated parse-stream
