@@ -13,9 +13,7 @@
 
 ## 0.2.6-SNAPSHOT
 
-- ?
-- ?
-- ?
+- add :allow-doctypes flag #16 @nitincodery
 
 ## 0.2.5
 
