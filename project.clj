@@ -1,4 +1,4 @@
-(defproject remus "0.2.6"
+(defproject remus "0.2.7-SNAPSHOT"
   :description "Attentive RSS/Atom feed parser"
 
   :deploy-repositories
